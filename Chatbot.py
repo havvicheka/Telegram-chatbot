@@ -1,184 +1,148 @@
 from typing import Final
 from telegram import Update
-import re
-from telegram.ext import Application,CommandHandler, MessageHandler,filters,ContextTypes
+from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from difflib import SequenceMatcher  # <-- Smart matching
+
+# --- Bot Info ---
 TOKEN = "8150838073:AAGUbykVJUs2qwl5QIrjOWU5KftG90lZ7Y8"
-BOT_USERNAME:Final = '@VVVTT_2222_bot'
+BOT_USERNAME: Final = '@VVVTT_2222_bot'
 
-#command
+# --- Command Handlers ---
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Hello! Thanks for chatting with me! I am a Telegram VIP!")
-
+    await update.message.reply_text("👋 Hello! I'm the Telegram VIP bot. Ask me anything about PNC (Passerelles Numériques Cambodia)!")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("I am a Telegram VIP!Please type somthing so I can respond")
-
+    await update.message.reply_text("💬 You can ask about: PNC programs, scholarships, requirements, internship, location, and more!")
 
 async def custom_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("This is a custom command!")
+    await update.message.reply_text("✨ This is a custom command! Try asking me: 'What is PNC?' or 'Does PNC give scholarships?'")
 
-#Responses
+# --- PNC Q&A Data ---
+RESPONSES = {
+    # --- General Info ---
+    "what is pnc": "💻 Passerelles Numériques Cambodia (PNC) is an NGO providing IT education and life skills to underprivileged youth.",
+    "tell me about pnc": "🌍 PNC trains underprivileged young Cambodians in IT, English, and soft skills for better job opportunities.",
+    "who founded pnc": "🇫🇷 Passerelles Numériques was founded in France in 2005 to support IT education in Southeast Asia.",
+    "when was pnc established": "📅 PNC Cambodia was established in 2005 under Passerelles Numériques’ global mission.",
+    "who can study at pnc": "🙋‍♀️ PNC accepts students from underprivileged backgrounds who show strong motivation and discipline.",
+    "what does pnc stand for": "🔠 PNC stands for Passerelles Numériques Cambodia.",
+    "where is pnc": "📍 PNC is located in Phnom Penh, Cambodia, near Pochentong area.",
+    "who manages pnc": "👩‍🏫 PNC is managed by Cambodian and international staff with support from NGOs and private partners.",
 
-def handle_response(text: str) -> str:
-    processed: str = text.lower()
-    words = processed.split()
+    # --- Mission / Vision / Values ---
+    "pnc mission": "🌍 PNC’s mission is to help underprivileged youth access education, professional training, and life skills.",
+    "pnc vision": "🌟 PNC’s vision is to build a world where education and technology empower youth to break poverty cycles.",
+    "pnc values": "💡 PNC values include Responsibility, Respect, Solidarity, and Trust.",
 
-     # General Info
-    if any(q in processed for q in ['hello', 'hi', 'hey']):
-        return 'Hey there! 😊 Welcome to Telegram VIP bot.'
-    
-    if 'what is pnc' in processed or 'tell me about pnc' in processed:
-        return 'PNC stands for Passerelles Numériques Cambodia. It’s an NGO that provides IT education and life skills to underprivileged youth. 💻📘'
+    # --- Programs & Training ---
+    "pnc programs": "📚 PNC offers a 2-year IT training program with English, soft skills, and internship.",
+    "what courses does pnc offer": "🖥️ PNC offers courses in software development, networking, database, and QA.",
+    "pnc duration": "🎓 The PNC program lasts 2 years, including a professional internship.",
+    "does pnc teach english": "🗣️ Yes! English is part of the training to prepare students for international jobs.",
+    "does pnc teach soft skills": "🤝 Yes! Students learn teamwork, communication, and time management.",
+    "does pnc teach programming": "💻 Definitely! PNC teaches web development, databases, and software engineering.",
+    "pnc internship": "💼 In the final year, all students complete a 5–6 month internship at a partner company.",
+    "pnc schedule": "🕒 Students usually have full-day classes Monday to Friday, with activities on weekends.",
+    "pnc subjects": "📖 Subjects include Programming, Database, Networking, QA, English, Soft Skills, and Life Skills.",
 
-    if 'where is pnc' in processed or 'pnc location' in processed:
-        return 'PNC is located in Phnom Penh, Cambodia. 📍'
+    # --- Scholarship & Admission ---
+    "pnc scholarship": "🎓 PNC provides a full scholarship covering tuition, dorm, food, materials, and healthcare.",
+    "how to apply to pnc": "📝 Apply through school visits, online registration, or entrance exams during recruitment season.",
+    "pnc eligibility": "🙌 Applicants must be from poor families, show motivation, and have completed high school.",
+    "pnc requirement": "✅ Must be 17–22 years old, from low-income families, and passionate about IT.",
+    "pnc recruitment process": "📋 Includes written tests (math, logic, English), interview, and home visit.",
+    "pnc scholarship benefits": "🎁 Full support: tuition, dorm, food, materials, uniform, and healthcare.",
+    "pnc scholarship exam": "✏️ Entrance exams include math, logic, and English tests.",
+    "pnc scholarship interview": "🎤 Yes. After the written test, there’s an interview to check your motivation.",
+    "when is pnc admission open": "📆 Recruitment usually starts around February–April every year.",
+    "is pnc free": "💸 Yes! PNC is a full scholarship program — students don’t pay any fees.",
+    "how many students are accepted": "👩‍🎓 About 100–150 new students are accepted each year.",
 
-    if 'tell me about pnc' in processed or 'pnc programs' in processed:
-        return "🌏 Passerelles numériques Cambodia (PNC) is a non-profit organization providing IT education and personal development to underprivileged youth, preparing them for professional careers. 💡"
+    # --- Student Life ---
+    "pnc dorm": "🏠 Yes, dormitory accommodation is provided for students with meals and basic needs.",
+    "pnc food": "🍲 PNC provides daily meals for all students.",
+    "pnc activities": "🎉 Students join clubs, community service, sports, and cultural events.",
+    "pnc clubs": "🤝 PNC has English, IT, Volunteer, Robotics, Sports, Film, and Design clubs.",
+    "pnc student life": "😊 Life at PNC is fun and supportive — students live, study, and grow together.",
+    "can girls study at pnc": "👩 Yes! PNC strongly encourages female applicants and promotes gender equality.",
 
-    if 'what is the mission of pnc' in processed or 'pnc mission' in processed:
-        return 'The mission of PNC is to help underprivileged youth gain education, professional experience, and life skills to build a better future. 🌍'
-    
-    if 'what is the vision of pnc' in processed or 'pnc vision' in processed:
-        return 'PNC’s vision is to create a world where education and technology empower youth to break the cycle of poverty. 🌟'
-    
-    if 'who founded pnc' in processed or 'pnc founder' in processed:
-        return 'PNC is part of Passerelles Numériques, founded in France in 2005 to support IT education in Southeast Asia. 🇫🇷'
-    
-    if 'pnc values' in processed or 'how many values' in processed:
-        return '🌟 PNC promotes Responsibility, Respect, Solidarity, and Trust.💡'
+    # --- After Graduation ---
+    "pnc jobs": "💻 Graduates work as developers, QA testers, network admins, or IT support officers.",
+    "pnc alumni success": "🌟 Most graduates find jobs soon after graduation with good salaries and career growth.",
+    "pnc partner companies": "🏢 PNC works with many IT companies in Cambodia and abroad for internships and jobs.",
+    "pnc salary": "💰 Most PNC graduates earn a stable income higher than Cambodia’s average salary.",
+    "pnc graduate rate": "🎓 Nearly all students graduate and secure jobs within months.",
+
+    # --- Contact / Support ---
+    "contact pnc": "📧 Contact: info@pn-cambodia.org 🌐 https://www.passerellesnumeriques.org/what-we-do/cambodia/",
+    "pnc website": "🌐 https://www.passerellesnumeriques.org/what-we-do/cambodia/",
+    "pnc facebook": "📱 Facebook: https://www.facebook.com/PasserellesNumeriquesCambodia",
+    "pnc address": "📍 PNC is located in Phnom Penh, Cambodia, near Pochentong area.",
+    "pnc phone": "📞 You can reach PNC via +855 (0)23 99 55 00.",
+
+    # --- Polite / Extra ---
+    "thank you": "😊 You’re welcome! Would you like to learn more about scholarships or programs?",
+    "goodbye": "👋 Goodbye! Keep learning and dreaming with PNC!",
+    "hello": "👋 Hi there! Welcome to PNC info bot — how can I help you today?",
+    "hi": "Hey there! 😊 Want to learn about PNC programs or scholarships?",
+    "who are you": "🤖 I’m your friendly PNC info bot, here to help you learn everything about Passerelles Numériques Cambodia!"
+}
+
+DEFAULT_REPLY = (
+    "🤔 Sorry, I’m not sure about that. You can contact PNC for help:\n"
+    "📧 info@pn-cambodia.org\n🌐 https://www.passerellesnumeriques.org/what-we-do/cambodia/"
+)
+
+# --- Smart Text Matching Function ---
+def get_best_response(user_text: str) -> str:
+    processed = user_text.lower()
+    best_match = None
+    best_score = 0.0
+
+    for question, answer in RESPONSES.items():
+        score = SequenceMatcher(None, processed, question).ratio()
+        if score > best_score:
+            best_score = score
+            best_match = answer
+
+    if best_score > 0.45:  # threshold for flexible matching
+        return best_match
+    return DEFAULT_REPLY
 
 
-    # Scholarship
-
-    if 'how can i apply to pnc' in processed or 'pnc application' in processed:
-        return 'You can apply to PNC through the official website or by following announcements during recruitment periods. 📝'
-    
-    if 'who can study at pnc' in processed or 'pnc eligibility' in processed:
-        return 'PNC accepts students from poor backgrounds who are motivated, hardworking, and have potential in IT. 🙌'
-
-    if 'how long is the pnc program' in processed or 'pnc study duration' in processed:
-        return 'The PNC program lasts for 2 years, including technical training, English, and soft skills. 🎓'
-
-    if 'does pnc provide internship' in processed or 'pnc internship' in processed:
-        return 'Yes! In the final year, students do an internship at a partner company to gain real-world experience. 💼'
-    
-    if 'study for free at pnc' in processed or 'pnc study free or not' in processed:
-        return '🎓 PNC provides full scholarships covering tuition, accommodation, meals, study materials, and healthcare. Students must come from low-income families, have completed high school, and show strong motivation to study IT. The scholarship lasts 2years, including a professional internship, with career guidance after graduation. '
-    
-    if 'how to apply' in processed or 'pnc requirement' in processed :
-        return '📝 Admission includes application submission, entrance exams (English & math), interview, and a home visit to verify financial need. Only motivated students from disadvantaged backgrounds are selected. ✅'
-    
-    if 'what do students learn' in processed or 'pnc subjects' in processed:
-        return '💻 PNC’s 2-year program covers programming, databases, networking, QA, English, and soft skills like communication, teamwork, and leadership. The final year includes a professional internship. 🚀'
-    
-    if 'does pnc provide internship' in processed or 'pnc internship' in processed:
-        return 'Yes! In the final year, students do an internship at a partner company to gain real-world experience. 💼'
-    
-    if'what is the pnc scholarship' in processed or 'tell me about the pnc scholarship'in processed:
-        return 'The PNC Scholarship helps underprivileged students study IT for free at Passerelles Numériques Cambodia. 🎓'
-    
-    if 'does pnc provide internship' in processed or 'pnc internship' in processed:
-        return 'Yes! In the final year, students do an internship at a partner company to gain real-world experience. 💼'
-    
-    if 'why choose pnc' in processed:
-        return '🌟 PNC emphasizes Responsibility, Respect, Solidarity, and Trust. These values guide academics, student life, and professional training, developing ethical and skilled IT professionals.'
-
-    if'who can apply for pnc scholarship'in processed or 'pnc scholarship eligibility' in processed:
-        return 'Students from poor families with strong motivation and potential in IT can apply for the PNC Scholarship. 💪'
-    
-    if'how to contact pnc"'in processed or 'how to join' in processed:
-        return '📧 You can contact PNC via email at info@pn-cambodia.org or visit their website at www.pn-cambodia.org for more details. 🌐'
-
-    if'how long is the pnc program'in processed or'pnc study duration' in processed:
-        return 'The PNC program 2 years of technical and soft skill training, and 4 month for internship. 🎓'
-
-    if'what does the pnc scholarship cover'in processed or 'pnc scholarship benefits'in processed :
-        return 'The PNC Scholarship covers tuition fees, accommodation, meals, school materials, and personal development training. 🏫🍲📘'
-
-    if'how to apply for pnc scholarship'in processed or 'pnc scholarship application' in processed :
-        return 'You can apply by filling out the application form on the official PNC website or during recruitment in your province. 📝'
-
-    if 'when is the pnc scholarship open'in processed or 'pnc scholarship deadline'in processed:
-        return 'The PNC Scholarship usually opens once a year. Follow PNC’s Facebook page for official announcements. 📅'
-
-    if'does pnc scholarship include internship'in processed or'pnc internship'in processed:
-        return 'Yes! During the last year, students do an internship at a partner company to gain real experience. 💼'
-
-    if'does pnc provide allowance'in processed or 'pnc scholarship allowance'in processed:
-        return 'Yes, PNC provides an allowance for personal needs during your studies. 💰'
-
-    if'is there an exam for pnc scholarship'in processed or'pnc scholarship test'in processed:
-        return 'Yes! Applicants take an entrance exam that includes math, logic, and English tests. ✏️'
-
-    if'does pnc provide interview'in processed or 'pnc scholarship interview'in processed:
-        return 'Yes. After passing the written test, candidates are invited for an interview to assess motivation and communication skills. 🎤'
-
-    if'does pnc provide english class'in processed or'pnc english training'in processed:
-        return 'Yes! English classes are included to help students communicate confidently in professional environments. 🗣️'
-
-    if'what job can i get after graduation'in processed or'pnc graduate jobs'in processed:
-        return 'Graduates often work as web developers, software testers, network administrators, or IT support officers in tech companies. 💻'
-
-    if'how successful are pnc graduates'in processed or'pnc alumni success'in processed:
-        return 'Most PNC graduates find jobs soon after graduation, with good salaries that help support their families. 🌟'
-
-    if "how to get scholarship"in processed :
-        return "📝 Apply during admission, pass entrance exams, attend interview, and have financial needs verified by PNC social workers. ✅"
-    
-    if "learning method" in processed: 
-        return"📖 PNC uses hands-on learning, projects, teamwork, mentoring, and continuous assessment to prepare students for real IT jobs. 🛠️"
-    
-    if "student clubs" in processed or "do you have club study for student" in processed: 
-        return"Clubs include English Club, IT Club, Volunteer Club, Arobit Club, sports club,film club,Design club 🤝"
-    
-    if 'benifit at pnc' in processed or 'What is benitfit at pnc' in processed:
-        return'You get a lot of such as computer one for learn 2 year food 3 time in one day, bike, healthy,dorm for lived.'
- 
-    if 'thank you' in processed or 'thanks' in processed:
-        return 'You’re welcome! 😊 Glad to help. Do you want to know more about PNC?'
-
-    if 'goodbye' in processed or 'bye' in processed:
-        return 'Goodbye! 👋 Have a nice day and keep learning with PNC!'
-
-    return'I do not understand what you wrote...'
-
+# --- Message Handler ---
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    message_type: str = update.message.chat.type
-    text: str = update.message.text
-
+    text = update.message.text
+    message_type = update.message.chat.type
     print(f'User({update.message.chat.id}) in {message_type}: "{text}"')
 
-    if message_type == 'group':
-        if BOT_USERNAME in text:
-            new_text: str = text.replace(BOT_USERNAME, '').strip()
-            response: str = handle_response(new_text)
-        else:
-            return
-    else:
-        response: str = handle_response(text)
+    if message_type == 'group' and BOT_USERNAME in text:
+        text = text.replace(BOT_USERNAME, '').strip()
 
+    response = get_best_response(text)
     print('Bot:', response)
     await update.message.reply_text(response)
 
+# --- Error Handler ---
 async def error(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print('Update{update}caused error{context.error}')
+    print(f"Update {update} caused error {context.error}")
 
+# --- Run Bot ---
 if __name__ == '__main__':
-    print('starting bot...')
-    app =Application.builder().token(TOKEN).build()
+    print("🤖 Starting smart PNC bot...")
+    app = Application.builder().token(TOKEN).build()
 
-    #commands
+    # Commands
+    app.add_handler(CommandHandler("start", start_command))
+    app.add_handler(CommandHandler("help", help_command))
+    app.add_handler(CommandHandler("custom", custom_command))
 
-    app.add_handler(CommandHandler('start', start_command))
-    app.add_handler(CommandHandler('help', help_command))
-    app.add_handler(CommandHandler('custom', custom_command))
-    
-    #Messages
+    # Messages
     app.add_handler(MessageHandler(filters.TEXT, handle_message))
 
-    #error
+    # Errors
     app.add_error_handler(error)
-    # Poll the bot
-    print('Polling...')
-    app.run_polling(poll_interval=3)
+
+    print("🚀 Bot is polling...")
+    app.run_polling(poll_interval=1)
+
