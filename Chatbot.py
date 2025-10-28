@@ -28,9 +28,12 @@ RESPONSES = {
     "what does pnc stand for": "🔠 PNC stands for Passerelles Numériques Cambodia.",
     "where is pnc": "📍 PNC is located in Phnom Penh, Cambodia, near Pochentong area.",
     "who manages pnc": "👩‍🏫 PNC is managed by Cambodian and international staff with support from NGOs and private partners.",
+    "Who CEO at pnc or who is director at PNC": "His name is Honghim Bunna",
+    "why choose pnc": "PNC emphasizes Responsibility, Respect, Solidarity, and Trust. These values guide academics, student life, and professional training, developing ethical and skilled IT professionals.",
+
 
     # --- Mission / Vision / Values ---
-    "pnc mission": "🌍 PNC’s mission is to help underprivileged youth access education, professional training, and life skills.",
+    "pnc mission":"🌍 PNC’s mission is to help underprivileged youth access education, professional training, and life skills.",
     "pnc vision": "🌟 PNC’s vision is to build a world where education and technology empower youth to break poverty cycles.",
     "pnc values": "💡 PNC values include Responsibility, Respect, Solidarity, and Trust.",
 
@@ -49,7 +52,7 @@ RESPONSES = {
     "pnc scholarship": "🎓 PNC provides a full scholarship covering tuition, dorm, food, materials, and healthcare.",
     "how to apply to pnc": "📝 Apply through school visits, online registration, or entrance exams during recruitment season.",
     "pnc eligibility": "🙌 Applicants must be from poor families, show motivation, and have completed high school.",
-    "pnc requirement": "✅ Must be 17–22 years old, from low-income families, and passionate about IT.",
+    "pnc requirement": "✅ Must be 17 years old, from low-income families, and passionate about IT.",
     "pnc recruitment process": "📋 Includes written tests (math, logic, English), interview, and home visit.",
     "pnc scholarship benefits": "🎁 Full support: tuition, dorm, food, materials, uniform, and healthcare.",
     "pnc scholarship exam": "✏️ Entrance exams include math, logic, and English tests.",
@@ -57,6 +60,9 @@ RESPONSES = {
     "when is pnc admission open": "📆 Recruitment usually starts around February–April every year.",
     "is pnc free": "💸 Yes! PNC is a full scholarship program — students don’t pay any fees.",
     "how many students are accepted": "👩‍🎓 About 100–150 new students are accepted each year.",
+    "does pnc scholarship include internship": "Yes! During the last year, students do an internship at a partner company to gain real experience. 💼",
+    "how to get scholarship" : "📝 Apply during admission, pass entrance exams, attend interview, and have financial needs verified by PNC social workers. ✅",
+    
 
     # --- Student Life ---
     "pnc dorm": "🏠 Yes, dormitory accommodation is provided for students with meals and basic needs.",
