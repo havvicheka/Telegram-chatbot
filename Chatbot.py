@@ -30,7 +30,8 @@ RESPONSES = {
     "who manages pnc": "👩‍🏫 PNC is managed by Cambodian and international staff with support from NGOs and private partners.",
     "Who CEO at pnc or who is director at PNC": "His name is Honghim Bunna",
     "why choose pnc": "PNC emphasizes Responsibility, Respect, Solidarity, and Trust. These values guide academics, student life, and professional training, developing ethical and skilled IT professionals.",
-
+    "is pnc international": "🌐 Yes! PNC is part of the international Passerelles Numériques network based in France.",
+    "want to ask you": "Yesh!",
 
     # --- Mission / Vision / Values ---
     "pnc mission":"🌍 PNC’s mission is to help underprivileged youth access education, professional training, and life skills.",
@@ -62,7 +63,7 @@ RESPONSES = {
     "how many students are accepted": "👩‍🎓 About 100–150 new students are accepted each year.",
     "does pnc scholarship include internship": "Yes! During the last year, students do an internship at a partner company to gain real experience. 💼",
     "how to get scholarship" : "📝 Apply during admission, pass entrance exams, attend interview, and have financial needs verified by PNC social workers. ✅",
-    
+    "what kind of job can pnc graduates get": "💻 PNC graduates work as developers, QA testers, network admins, and IT support staff.",
 
     # --- Student Life ---
     "pnc dorm": "🏠 Yes, dormitory accommodation is provided for students with meals and basic needs.",
@@ -84,9 +85,10 @@ RESPONSES = {
     "pnc website": "🌐 https://www.passerellesnumeriques.org/what-we-do/cambodia/",
     "pnc facebook": "📱 Facebook: https://www.facebook.com/PasserellesNumeriquesCambodia",
     "pnc address": "📍 PNC is located in Phnom Penh, Cambodia, near Pochentong area.",
-    "pnc phone": "📞 You can reach PNC via +855 (0)23 99 55 00.",
+    "pnc phone": "📞 +855 23 99 55 00",
 
     # --- Polite / Extra ---
+
     "thank you": "😊 You’re welcome! Would you like to learn more about scholarships or programs?",
     "goodbye": "👋 Goodbye! Keep learning and dreaming with PNC!",
     "hello": "👋 Hi there! Welcome to PNC info bot — how can I help you today?",
